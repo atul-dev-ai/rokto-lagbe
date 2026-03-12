@@ -29,9 +29,10 @@ export const metadata: Metadata = {
 
   // 🟢 ২. গুগল সার্চ কনসোল ভেরিফিকেশন কোড এখানে বসবে
   verification: {
-    google: "আপনার_গুগল_কোড_এখানে_পেস্ট_করুন",
+    google: "vBOhE-VuhIiXVbQ0jiPyPPH6Cou-K6rHEa0-1a0np0w",
   },
-  
+  // <meta name="google-site-verification" content="vBOhE-VuhIiXVbQ0jiPyPPH6Cou-K6rHEa0-1a0np0w" />
+
   openGraph: {
     title: "Rokto Lagbe? | LifeFlow",
     description:
