@@ -140,10 +140,10 @@ export function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-10 w-10 rounded-full border border-border shadow-sm"
+                    className="relative cursor-pointer h-10 w-10 rounded-full border border-border shadow-sm"
                   >
                     <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 font-bold uppercase">
+                      <AvatarFallback className="bg-red-50  text-red-600 dark:bg-red-900/20 dark:text-red-400 font-bold uppercase">
                         {userName ? (
                           userName.charAt(0)
                         ) : (
@@ -154,12 +154,12 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-56 mt-2"
+                  className="w-56 mt-2 cursor-pointer"
                   align="end"
                   forceMount
                 >
                   <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
+                    <div className="flex flex-col space-y-1 ">
                       <p className="text-sm font-medium leading-none">
                         {userName || "User"}
                       </p>

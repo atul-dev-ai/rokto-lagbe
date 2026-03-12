@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/Navbar";
+import { MaintenancePopup } from "@/components/MaintenancePopup";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -73,6 +74,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {/* Eta maintenance er jonno deya hoiche jokhon kaj sesh 
+          hoye jabe tokhon eta comment kore deya hobe */}
+          <MaintenancePopup />
           <Navbar />
           <main>{children}</main>
         </ThemeProvider>

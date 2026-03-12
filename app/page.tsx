@@ -64,8 +64,8 @@ export default function HomePage() {
 
         {/* Main Content */}
         <div className="relative z-30 flex flex-col items-center text-center px-4 mt-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-red-950/40 border border-red-500/30 text-red-400 font-semibold text-sm mb-8 shadow-[0_0_20px_rgba(220,38,38,0.2)] backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <Activity className="w-4 h-4 text-red-500 animate-[heartbeat_1.5s_ease-in-out_infinite]" />
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-red-950/40 border border-red-500/30 text-red-400 font-semibold text-sm mb-8 shadow-[0_0_20px_rgba(220,38,38,0.2)] backdrop-blur-md fade-in slide-in-from-bottom-4 duration-1000 animate-bounce">
+            <Activity className="w-4 h-4 text-red-500 animate-[heartbeat_1s_ease-in-out_infinite] " />
             <span className="tracking-widest uppercase text-xs font-bold">
               Smart Emergency Network
             </span>
@@ -86,7 +86,7 @@ export default function HomePage() {
 
           <div className="flex flex-col sm:flex-row items-center gap-6 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500 w-full sm:w-auto">
             <Button
-              className="group relative w-full sm:w-auto h-16 md:h-20 px-10 md:px-12 text-lg md:text-xl font-bold rounded-full bg-gradient-to-b from-red-500 to-red-800 hover:from-red-600 hover:to-red-900 text-white border-b-4 border-red-950 shadow-[0_0_40px_rgba(220,38,38,0.4)] hover:shadow-[0_0_60px_rgba(220,38,38,0.7)] transition-all duration-300 hover:-translate-y-2 overflow-hidden"
+              className="group cursor-pointer relative w-full sm:w-auto h-16 md:h-20 px-10 md:px-12 text-lg md:text-xl font-bold rounded-full bg-gradient-to-b from-red-500 to-red-800 hover:from-red-600 hover:to-red-900 text-white border-b-4 border-red-950 shadow-[0_0_40px_rgba(220,38,38,0.4)] hover:shadow-[0_0_60px_rgba(220,38,38,0.7)] transition-all duration-300 hover:-translate-y-2 overflow-hidden"
               onClick={scrollToSearch}
             >
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>

@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🩸 Rokto Lagbe? (রক্ত লাগবে?)
+**Bangladesh's Smart Emergency Blood & Oxygen Network**
 
-## Getting Started
+"Rokto Lagbe?" is a modern, fast, and secure web platform designed to connect people in medical emergencies with verified blood donors, oxygen suppliers, and volunteers across Bangladesh. 
 
-First, run the development server:
+![Rokto Lagbe Network](/public/logo.png) ## 🚀 Key Features
+* **Smart Donor Finder:** Instantly search for blood donors based on blood group and availability.
+* **Oxygen Network:** Find active oxygen suppliers in your area during critical moments.
+* **Volunteer Dashboard:** Dedicated portal for volunteers to manage requests and availability.
+* **Secure Authentication:** Passwordless/Email-based secure login system powered by Supabase.
+* **Role-based Admin Panel:** Centralized control for administrators to verify users and manage the platform.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 💻 Tech Stack
+* **Frontend:** Next.js 16 (App Router), React, Tailwind CSS
+* **Backend/Database:** Supabase (PostgreSQL, Auth, RLS Policies)
+* **UI Components:** Lucide Icons, Custom UI components
+* **Deployment:** Vercel
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Live Demo
+[Click here to view the live project](https://rokto-lagbe-as.vercel.app) 
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+<img src="preview.png">
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Local Development Setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/atul-dev-ai/rokto-lagbe.git
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. Install dependencies:
+   ```bash
+   cd rokto-lagbe
+   ```
+   
+   ```bash
+   npm install
+   ```
 
-## Deploy on Vercel
+3. Environment Variables:
+   Create a `.env.local` file in the root directory and add your
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. Supabase keys:
+   ```Code snippet
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   ```
+   ```Code snippet
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+5. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+  Open `http://localhost:3000` with your browser to see the result.
+
+
+## 👨‍💻 Developed By
+<b> Atul Paul </b> Full-Stack Web Developer ---
+Built with ❤️ to save lives.
