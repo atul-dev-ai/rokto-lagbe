@@ -7,6 +7,8 @@ import { Navbar } from "@/components/Navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://rokto-lagbe-as.vercel.app"),
+
   title: {
     default: "Rokto Lagbe? | Smart Emergency Network",
     template: "%s | LifeFlow",
@@ -24,11 +26,17 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Atul Paul" }],
   creator: "Atul Paul",
+
+  // 🟢 ২. গুগল সার্চ কনসোল ভেরিফিকেশন কোড এখানে বসবে
+  verification: {
+    google: "আপনার_গুগল_কোড_এখানে_পেস্ট_করুন",
+  },
+  
   openGraph: {
     title: "Rokto Lagbe? | LifeFlow",
     description:
       "One drop of blood can save a life. Find verified donors in your area instantly.",
-    url: "https://lifeflow.com", // Replace with your real URL
+    url: "https://rokto-lagbe-as.vercel.app", // Replace with your real URL
     siteName: "LifeFlow",
     images: [
       {

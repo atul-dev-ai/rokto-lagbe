@@ -4,7 +4,7 @@ import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // আপনার ডোমেইন কেনা হয়ে গেলে এখানে আসল URL বসিয়ে দেবেন
-  const baseUrl = "https://lifeflow.com";
+  const baseUrl = "https://rokto-lagbe-as.vercel.app";
 
   return [
     {

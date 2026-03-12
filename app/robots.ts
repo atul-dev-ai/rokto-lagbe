@@ -3,7 +3,7 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://lifeflow.com";
+  const baseUrl = "https://rokto-lagbe-as.vercel.app";
 
   return {
     rules: {
