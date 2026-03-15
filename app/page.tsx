@@ -26,7 +26,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* ================= HERO SECTION (ROKTO LAGBE) ================= */}
-      <div className="relative min-h-[100vh] overflow-hidden flex flex-col items-center justify-center selection:bg-red-500/30 pb-20 bg-[#050505]">
+      <div className="relative min-h-[100vh] py-18 overflow-hidden flex flex-col items-center justify-center selection:bg-red-500/30 pb-20 bg-[#050505]">
         {/* Background Layers */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#1a0505_0%,_#050505_100%)]"></div>
         <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[600px] md:w-[800px] h-[600px] bg-[conic-gradient(from_90deg_at_50%_50%,#000000_0deg,#dc2626_180deg,#000000_360deg)] opacity-20 blur-[120px] animate-pulse"></div>

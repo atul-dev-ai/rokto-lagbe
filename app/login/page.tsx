@@ -54,7 +54,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 pt-18 relative overflow-hidden">
       {/* Animated Background Blobs */}
       <div className="absolute inset-0 w-full h-full pointer-events-none -z-10">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-500/20 rounded-full blur-[120px] animate-pulse"></div>
@@ -146,7 +146,7 @@ export default function LoginPage() {
         </form>
 
         {/* Footer Link */}
-        <div className="mt-8 text-center text-sm font-medium text-muted-foreground pt-6 border-t border-border/50">
+        <div className="mt-5 text-center text-sm font-medium text-muted-foreground pt-4np border-t border-border/50">
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"

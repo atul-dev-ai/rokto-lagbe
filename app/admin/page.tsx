@@ -145,7 +145,7 @@ export default function AdminDashboard() {
   const activeVolunteers = volunteers.filter((v) => v.is_available).length;
 
   return (
-    <div className="min-h-screen bg-[#050505] py-10 text-slate-200">
+    <div className="min-h-screen bg-[#050505] py-18 text-slate-200">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-center bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-6 rounded-3xl mb-8">

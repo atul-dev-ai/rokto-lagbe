@@ -53,7 +53,7 @@ export function OxygenSection() {
   return (
     <div
       id="oxygen-section"
-      className="w-full bg-background py-20 border-t border-border/50 relative overflow-hidden"
+      className="w-full bg-background py-26 border-t border-border/50 relative overflow-hidden"
     >
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none -z-10"></div>
