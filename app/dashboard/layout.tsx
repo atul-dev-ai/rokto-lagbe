@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Manage Your Profile & Donor Status | Rokto Lagbe?",
+  title: "Manage Your Profile & Donor Status",
   description:
     "Update your last donation date, manage services, and toggle your status to help people in medical emergencies near you.",
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import {
   ShieldCheck,
   Building2,
   Info,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -38,6 +39,11 @@ export default function SignupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 🟢 Rate Limiting States
+  const [attempts, setAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   const [formData, setFormData] = useState({
     accountType: "finder",
@@ -49,14 +55,28 @@ export default function SignupPage() {
     institutionName: "",
     location: "",
     bloodGroup: "",
-    // নতুন ফিল্ডগুলো
     organization: "",
     providerType: "free",
     details: "",
   });
 
+  // 🟢 Cooldown Timer Logic
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (cooldown > 0) {
+      timer = setInterval(() => {
+        setCooldown((prev) => prev - 1);
+      }, 1000);
+    } else if (cooldown === 0 && isLocked) {
+      setIsLocked(false);
+      setAttempts(0); // Cooldown শেষ হলে attempt রিসেট
+    }
+    return () => clearInterval(timer);
+  }, [cooldown, isLocked]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
+    if (error) setError(null);
   };
 
   const handleSelectChange = (field: string, value: string) => {
@@ -73,6 +93,13 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 🟢 Rate Limit Check
+    if (isLocked) {
+      setError(`Too many attempts. Please try again in ${cooldown} seconds.`);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -103,7 +130,7 @@ export default function SignupPage() {
       if (authError) throw authError;
 
       if (authData.user) {
-        // ২. মেইন প্রোফাইল টেবিলে ডাটা ইনসার্ট (লগইন করার জন্য)
+        // ২. মেইন প্রোফাইল টেবিলে ডাটা ইনসার্ট
         const { error: profileError } = await supabase
           .from("users_profiles")
           .insert([
@@ -129,11 +156,11 @@ export default function SignupPage() {
           );
         }
 
-        // ৩. অ্যাকাউন্ট টাইপ অনুযায়ী স্পেসিফিক টেবিলে ডাটা ইনসার্ট
+        // ৩. অ্যাকাউন্ট টাইপ অনুযায়ী স্পেসিফিক টেবিলে ডাটা ইনসার্ট
         if (formData.accountType === "volunteer") {
           const { error: volError } = await supabase.from("volunteers").insert([
             {
-              user_id: authData.user.id, // 🟢 এই লাইনটি যোগ করা হয়েছে
+              user_id: authData.user.id,
               name: formData.fullName,
               phone: formData.phone,
               location: formData.location,
@@ -147,7 +174,7 @@ export default function SignupPage() {
             .from("oxygen_suppliers")
             .insert([
               {
-                user_id: authData.user.id, // 🟢 এই লাইনটি যোগ করা হয়েছে
+                user_id: authData.user.id,
                 name: formData.fullName,
                 phone: formData.phone,
                 location: formData.location,
@@ -163,42 +190,65 @@ export default function SignupPage() {
         router.push("/login");
       }
     } catch (err: any) {
-      setError(err.message || "Something went wrong during signup.");
+      // 🟢 Failed attempt logic
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+
+      if (newAttempts >= 5) {
+        setIsLocked(true);
+        setCooldown(60); // 60 সেকেন্ডের জন্য লক
+        setError(
+          "Too many signup attempts. Your device is temporarily blocked for 60 seconds to prevent spam.",
+        );
+      } else {
+        setError(err.message || "Something went wrong during signup.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 relative overflow-hidden py-10">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 relative overflow-hidden py-10 bg-[#050505]">
       <div className="absolute inset-0 w-full h-full pointer-events-none -z-10">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-red-500/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] animate-pulse delay-1000"></div>
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-red-900/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-blue-900/10 rounded-full blur-[120px] animate-pulse delay-1000"></div>
       </div>
 
-      <div className="w-full max-w-2xl bg-background/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl border border-border p-8 md:p-10 transform transition-all hover:scale-[1.01]">
+      <div className="w-full max-w-2xl bg-slate-900/60 backdrop-blur-2xl rounded-[2rem] shadow-2xl border border-slate-800 p-8 md:p-10 transform transition-all hover:scale-[1.01]">
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-red-500/30">
-            <Droplet className="w-8 h-8" />
+          <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-800 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-red-600/30 border border-red-500/30">
+            <Droplet className="w-8 h-8 fill-red-500/20" />
           </div>
-          <h1 className="text-3xl font-black text-foreground tracking-tight mb-2">
+          <h1 className="text-3xl font-black text-white tracking-tight mb-2">
             Join LifeFlow
           </h1>
-          <p className="text-muted-foreground text-sm font-medium">
+          <p className="text-slate-400 text-sm font-medium">
             Create your emergency profile.
           </p>
         </div>
 
+        {/* 🟢 Error Message Display (Updated for Rate Limiting) */}
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-medium text-center">
-            {error}
+          <div
+            className={`mb-6 p-4 rounded-xl border text-sm font-bold flex items-start gap-3 ${isLocked ? "bg-red-950/50 border-red-900 text-red-400" : "bg-amber-950/30 border-amber-900/50 text-amber-500"}`}
+          >
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div className="text-left">
+              {error}
+              {isLocked && (
+                <p className="text-xs text-red-500/70 font-semibold mt-1">
+                  Please wait for the timer to finish.
+                </p>
+              )}
+            </div>
           </div>
         )}
 
         <form onSubmit={handleSignup} className="space-y-5">
-          {/* 🟢 EXPANDED ACCOUNT TYPE SELECTOR (4 Options) */}
+          {/* ACCOUNT TYPE SELECTOR */}
           <div className="space-y-3 mb-6">
-            <Label className="font-bold ml-1 text-foreground">
+            <Label className="font-bold ml-1 text-slate-300">
               I want to join as a:
             </Label>
             <RadioGroup
@@ -212,6 +262,7 @@ export default function SignupPage() {
                   details: "",
                 })
               }
+              disabled={isLocked}
               className="grid grid-cols-2 md:grid-cols-4 gap-3"
             >
               <div>
@@ -222,10 +273,10 @@ export default function SignupPage() {
                 />
                 <Label
                   htmlFor="finder"
-                  className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-muted bg-transparent p-3 hover:border-slate-300 dark:hover:border-slate-700 peer-data-[state=checked]:border-slate-600 peer-data-[state=checked]:bg-slate-50 dark:peer-data-[state=checked]:bg-slate-900/20 cursor-pointer transition-all text-center"
+                  className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900/50 p-3 cursor-pointer transition-all text-center ${isLocked ? "opacity-50 cursor-not-allowed" : "hover:border-slate-500 peer-data-[state=checked]:border-slate-400 peer-data-[state=checked]:bg-slate-800"}`}
                 >
-                  <Search className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                  <span className="font-bold text-[11px] uppercase tracking-wider">
+                  <Search className="h-5 w-5 text-slate-400" />
+                  <span className="font-bold text-[11px] uppercase tracking-wider text-slate-300">
                     Finder
                   </span>
                 </Label>
@@ -239,10 +290,10 @@ export default function SignupPage() {
                 />
                 <Label
                   htmlFor="donor"
-                  className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-muted bg-transparent p-3 hover:border-red-300 dark:hover:border-red-800 peer-data-[state=checked]:border-red-600 peer-data-[state=checked]:bg-red-50 dark:peer-data-[state=checked]:bg-red-900/20 cursor-pointer transition-all text-center"
+                  className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900/50 p-3 cursor-pointer transition-all text-center ${isLocked ? "opacity-50 cursor-not-allowed" : "hover:border-red-800 peer-data-[state=checked]:border-red-600 peer-data-[state=checked]:bg-red-950/30"}`}
                 >
-                  <HeartHandshake className="h-5 w-5 text-red-600" />
-                  <span className="font-bold text-[11px] uppercase tracking-wider">
+                  <HeartHandshake className="h-5 w-5 text-red-500" />
+                  <span className="font-bold text-[11px] uppercase tracking-wider text-slate-300">
                     Donor
                   </span>
                 </Label>
@@ -256,10 +307,10 @@ export default function SignupPage() {
                 />
                 <Label
                   htmlFor="volunteer"
-                  className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-muted bg-transparent p-3 hover:border-emerald-300 dark:hover:border-emerald-800 peer-data-[state=checked]:border-emerald-600 peer-data-[state=checked]:bg-emerald-50 dark:peer-data-[state=checked]:bg-emerald-900/20 cursor-pointer transition-all text-center"
+                  className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900/50 p-3 cursor-pointer transition-all text-center ${isLocked ? "opacity-50 cursor-not-allowed" : "hover:border-emerald-800 peer-data-[state=checked]:border-emerald-600 peer-data-[state=checked]:bg-emerald-950/30"}`}
                 >
-                  <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                  <span className="font-bold text-[11px] uppercase tracking-wider">
+                  <ShieldCheck className="h-5 w-5 text-emerald-500" />
+                  <span className="font-bold text-[11px] uppercase tracking-wider text-slate-300">
                     Volunteer
                   </span>
                 </Label>
@@ -273,10 +324,10 @@ export default function SignupPage() {
                 />
                 <Label
                   htmlFor="oxygen"
-                  className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-muted bg-transparent p-3 hover:border-blue-300 dark:hover:border-blue-800 peer-data-[state=checked]:border-blue-600 peer-data-[state=checked]:bg-blue-50 dark:peer-data-[state=checked]:bg-blue-900/20 cursor-pointer transition-all text-center"
+                  className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900/50 p-3 cursor-pointer transition-all text-center ${isLocked ? "opacity-50 cursor-not-allowed" : "hover:border-blue-800 peer-data-[state=checked]:border-blue-600 peer-data-[state=checked]:bg-blue-950/30"}`}
                 >
-                  <Wind className="h-5 w-5 text-blue-600" />
-                  <span className="font-bold text-[11px] uppercase tracking-wider">
+                  <Wind className="h-5 w-5 text-blue-500" />
+                  <span className="font-bold text-[11px] uppercase tracking-wider text-slate-300">
                     Oxygen
                   </span>
                 </Label>
@@ -286,13 +337,16 @@ export default function SignupPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
-              <Label htmlFor="fullName" className="font-bold ml-1">
+              <Label
+                htmlFor="fullName"
+                className="font-bold ml-1 text-slate-300"
+              >
                 {formData.accountType === "oxygen"
                   ? "Supplier / Company Name"
                   : "Full Name"}
               </Label>
               <div className="relative group">
-                <User className="absolute left-4 top-3.5 h-4 w-4 text-muted-foreground" />
+                <User className="absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
                 <Input
                   id="fullName"
                   type="text"
@@ -303,25 +357,27 @@ export default function SignupPage() {
                   }
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="pl-11 h-11 rounded-xl bg-muted/50 font-medium"
+                  disabled={isLocked}
+                  className="pl-11 h-11 rounded-xl bg-slate-950/50 border-slate-800 text-white focus:ring-red-500/20 focus:border-red-500 transition-all font-medium disabled:opacity-50"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="font-bold ml-1">
+              <Label htmlFor="phone" className="font-bold ml-1 text-slate-300">
                 Phone Number
               </Label>
               <div className="relative group">
-                <Phone className="absolute left-4 top-3.5 h-4 w-4 text-muted-foreground" />
+                <Phone className="absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="01XXXXXXXXX"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="pl-11 h-11 rounded-xl bg-muted/50 font-medium"
+                  disabled={isLocked}
+                  className="pl-11 h-11 rounded-xl bg-slate-950/50 border-slate-800 text-white focus:ring-red-500/20 focus:border-red-500 transition-all font-medium disabled:opacity-50"
                   required
                 />
               </div>
@@ -330,17 +386,20 @@ export default function SignupPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
-              <Label className="font-bold ml-1">Occupation / Status</Label>
+              <Label className="font-bold ml-1 text-slate-300">
+                Occupation / Status
+              </Label>
               <Select
                 value={formData.occupation}
                 onValueChange={(val) => handleSelectChange("occupation", val)}
+                disabled={isLocked}
                 required
               >
-                <SelectTrigger className="h-11 rounded-xl bg-muted/50 font-medium">
-                  <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
+                <SelectTrigger className="h-11 rounded-xl bg-slate-950/50 border-slate-800 text-white font-medium disabled:opacity-50">
+                  <Briefcase className="mr-2 h-4 w-4 text-slate-500" />
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-slate-900 border-slate-800 text-white">
                   <SelectItem value="university_student">
                     University Student
                   </SelectItem>
@@ -356,18 +415,22 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location" className="font-bold ml-1">
+              <Label
+                htmlFor="location"
+                className="font-bold ml-1 text-slate-300"
+              >
                 City / Area
               </Label>
               <div className="relative group">
-                <MapPin className="absolute left-4 top-3.5 h-4 w-4 text-muted-foreground" />
+                <MapPin className="absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
                 <Input
                   id="location"
                   type="text"
                   placeholder="e.g. Dhaka, Mirpur"
                   value={formData.location}
                   onChange={handleChange}
-                  className="pl-11 h-11 rounded-xl bg-muted/50 font-medium"
+                  disabled={isLocked}
+                  className="pl-11 h-11 rounded-xl bg-slate-950/50 border-slate-800 text-white focus:ring-red-500/20 focus:border-red-500 transition-all font-medium disabled:opacity-50"
                   required
                 />
               </div>
@@ -378,41 +441,46 @@ export default function SignupPage() {
           {(formData.occupation === "university_student" ||
             formData.occupation === "college_student") && (
             <div className="space-y-2 animate-in fade-in zoom-in duration-300">
-              <Label htmlFor="institutionName" className="font-bold ml-1">
+              <Label
+                htmlFor="institutionName"
+                className="font-bold ml-1 text-slate-300"
+              >
                 Institution Name
               </Label>
               <div className="relative group">
-                <School className="absolute left-4 top-3.5 h-4 w-4 text-muted-foreground" />
+                <School className="absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
                 <Input
                   id="institutionName"
                   type="text"
                   placeholder="e.g. Dhaka University / Dhaka College"
                   value={formData.institutionName}
                   onChange={handleChange}
-                  className="pl-11 h-11 rounded-xl bg-muted/50 font-medium border-blue-200 focus:border-blue-500 focus:ring-blue-500/20"
+                  disabled={isLocked}
+                  className="pl-11 h-11 rounded-xl bg-slate-950/50 border-slate-800 text-white focus:border-blue-500 focus:ring-blue-500/20 font-medium disabled:opacity-50"
                   required
                 />
               </div>
             </div>
           )}
 
-          {/* 🟢 Conditional Field: Blood Group (For Donors) */}
+          {/* Conditional Field: Blood Group (For Donors) */}
           {formData.accountType === "donor" && (
-            <div className="p-4 rounded-xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 animate-in fade-in zoom-in duration-300">
+            <div className="p-4 rounded-xl bg-red-950/10 border border-red-900/30 animate-in fade-in zoom-in duration-300">
               <div className="space-y-2">
-                <Label className="font-bold ml-1 text-red-700 dark:text-red-400">
+                <Label className="font-bold ml-1 text-red-400">
                   Blood Group
                 </Label>
                 <Select
                   value={formData.bloodGroup}
                   onValueChange={(val) => handleSelectChange("bloodGroup", val)}
+                  disabled={isLocked}
                   required
                 >
-                  <SelectTrigger className="h-11 rounded-xl bg-white dark:bg-slate-900 border-red-200 dark:border-red-800 font-medium">
+                  <SelectTrigger className="h-11 rounded-xl bg-slate-950 border-red-900/50 text-white font-medium disabled:opacity-50">
                     <Droplet className="mr-2 h-4 w-4 text-red-500" />
                     <SelectValue placeholder="Select Group" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-slate-900 border-slate-800 text-white">
                     {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
                       (bg) => (
                         <SelectItem key={bg} value={bg}>
@@ -426,13 +494,13 @@ export default function SignupPage() {
             </div>
           )}
 
-          {/* 🟢 Conditional Field: Organization (For Volunteers) */}
+          {/* Conditional Field: Organization (For Volunteers) */}
           {formData.accountType === "volunteer" && (
-            <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 animate-in fade-in zoom-in duration-300">
+            <div className="p-4 rounded-xl bg-emerald-950/10 border border-emerald-900/30 animate-in fade-in zoom-in duration-300">
               <div className="space-y-2">
                 <Label
                   htmlFor="organization"
-                  className="font-bold ml-1 text-emerald-700 dark:text-emerald-400"
+                  className="font-bold ml-1 text-emerald-400"
                 >
                   Organization / Foundation Name (Optional)
                 </Label>
@@ -444,18 +512,19 @@ export default function SignupPage() {
                     placeholder="e.g. Red Crescent Society"
                     value={formData.organization}
                     onChange={handleChange}
-                    className="pl-11 h-11 rounded-xl bg-white dark:bg-slate-900 border-emerald-200 dark:border-emerald-800 font-medium"
+                    disabled={isLocked}
+                    className="pl-11 h-11 rounded-xl bg-slate-950 border-emerald-900/50 text-white font-medium disabled:opacity-50"
                   />
                 </div>
               </div>
             </div>
           )}
 
-          {/* 🟢 Conditional Fields: Provider Type & Details (For Oxygen) */}
+          {/* Conditional Fields: Provider Type & Details (For Oxygen) */}
           {formData.accountType === "oxygen" && (
-            <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 animate-in fade-in zoom-in duration-300 space-y-4">
+            <div className="p-4 rounded-xl bg-blue-950/10 border border-blue-900/30 animate-in fade-in zoom-in duration-300 space-y-4">
               <div className="space-y-2">
-                <Label className="font-bold ml-1 text-blue-700 dark:text-blue-400">
+                <Label className="font-bold ml-1 text-blue-400">
                   Provider Type
                 </Label>
                 <Select
@@ -463,13 +532,14 @@ export default function SignupPage() {
                   onValueChange={(val) =>
                     handleSelectChange("providerType", val)
                   }
+                  disabled={isLocked}
                   required
                 >
-                  <SelectTrigger className="h-11 rounded-xl bg-white dark:bg-slate-900 border-blue-200 dark:border-blue-800 font-medium">
+                  <SelectTrigger className="h-11 rounded-xl bg-slate-950 border-blue-900/50 text-white font-medium disabled:opacity-50">
                     <Wind className="mr-2 h-4 w-4 text-blue-500" />
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-slate-900 border-slate-800 text-white">
                     <SelectItem value="free">
                       Free Service (Charity/Bank)
                     </SelectItem>
@@ -483,7 +553,7 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <Label
                   htmlFor="details"
-                  className="font-bold ml-1 text-blue-700 dark:text-blue-400"
+                  className="font-bold ml-1 text-blue-400"
                 >
                   Details / Instructions (Optional)
                 </Label>
@@ -495,7 +565,8 @@ export default function SignupPage() {
                     placeholder="e.g. 24/7 service, delivery available..."
                     value={formData.details}
                     onChange={handleChange}
-                    className="pl-11 h-11 rounded-xl bg-white dark:bg-slate-900 border-blue-200 dark:border-blue-800 font-medium"
+                    disabled={isLocked}
+                    className="pl-11 h-11 rounded-xl bg-slate-950 border-blue-900/50 text-white font-medium disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -504,36 +575,41 @@ export default function SignupPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-bold ml-1">
+              <Label htmlFor="email" className="font-bold ml-1 text-slate-300">
                 Email Address
               </Label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-3.5 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="hello@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className="pl-11 h-11 rounded-xl bg-muted/50 font-medium"
+                  disabled={isLocked}
+                  className="pl-11 h-11 rounded-xl bg-slate-950/50 border-slate-800 text-white focus:ring-red-500/20 focus:border-red-500 transition-all font-medium disabled:opacity-50"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="font-bold ml-1">
+              <Label
+                htmlFor="password"
+                className="font-bold ml-1 text-slate-300"
+              >
                 Password
               </Label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-3.5 h-4 w-4 text-muted-foreground" />
+                <Lock className="absolute left-4 top-3.5 h-4 w-4 text-slate-500" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className="pl-11 h-11 rounded-xl bg-muted/50 font-medium"
+                  disabled={isLocked}
+                  className="pl-11 h-11 rounded-xl bg-slate-950/50 border-slate-800 text-white focus:ring-red-500/20 focus:border-red-500 transition-all font-medium disabled:opacity-50"
                   required
                   minLength={6}
                 />
@@ -545,18 +621,25 @@ export default function SignupPage() {
             <Checkbox
               id="terms"
               required
-              className="data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+              disabled={isLocked}
+              className="data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600 border-slate-600"
             />
             <label
               htmlFor="terms"
-              className="text-sm font-medium leading-none text-muted-foreground"
+              className="text-sm font-medium leading-none text-slate-400"
             >
               I agree to the{" "}
-              <Link href="#" className="text-red-600 hover:underline font-bold">
+              <Link
+                href="#"
+                className="text-red-500 hover:text-red-400 hover:underline font-bold"
+              >
                 Terms
               </Link>{" "}
               &{" "}
-              <Link href="#" className="text-red-600 hover:underline font-bold">
+              <Link
+                href="#"
+                className="text-red-500 hover:text-red-400 hover:underline font-bold"
+              >
                 Privacy Policy
               </Link>
               .
@@ -565,19 +648,32 @@ export default function SignupPage() {
 
           <Button
             type="submit"
-            disabled={loading}
-            className="w-full h-12 mt-2 text-lg font-bold rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg shadow-red-600/20 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+            disabled={loading || isLocked}
+            className={`w-full h-12 mt-2 text-lg font-bold rounded-xl text-white shadow-lg transition-all hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-not-allowed ${isLocked ? "bg-slate-800 text-slate-500 shadow-none border border-slate-700" : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-red-600/20"}`}
           >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Creating
                 Account...
               </>
+            ) : isLocked ? (
+              `Locked (${cooldown}s)`
             ) : (
               "Create Account"
             )}
           </Button>
         </form>
+
+        {/* Footer Link */}
+        <div className="mt-6 text-center text-sm font-medium text-slate-400 pt-6 border-t border-slate-800">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="font-bold text-red-500 hover:text-red-400 transition-colors"
+          >
+            Sign in here
+          </Link>
+        </div>
       </div>
     </div>
   );
