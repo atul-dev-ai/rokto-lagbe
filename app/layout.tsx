@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
   title: {
     default: "Rokto Lagbe? | Smart Emergency Network",
-    template: "%s | LifeFlow",
+    template: "%s | Rokto Lagbe?",
   },
   description:
     "Find verified blood donors and oxygen in Bangladesh. Join the fastest emergency network today.",
@@ -35,17 +35,17 @@ export const metadata: Metadata = {
   // <meta name="google-site-verification" content="vBOhE-VuhIiXVbQ0jiPyPPH6Cou-K6rHEa0-1a0np0w" />
 
   openGraph: {
-    title: "Rokto Lagbe? | LifeFlow",
+    title: "Rokto Lagbe?",
     description:
       "One drop of blood can save a life. Find verified donors in your area instantly.",
     url: "https://rokto-lagbe-as.vercel.app", // Replace with your real URL
-    siteName: "LifeFlow",
+    siteName: "Rokto Lagbe?",
     images: [
       {
         url: "/logo.png",
         width: 1200,
         height: 630,
-        alt: "LifeFlow - Smart Emergency Network",
+        alt: "Rokto Lagbe? - Smart Emergency Network",
       },
     ],
     locale: "en_US",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rokto Lagbe? | LifeFlow",
+    title: "Rokto Lagbe?",
     description:
       "Bangladesh's First Smart Emergency Ecosystem for Blood and Oxygen.",
     images: ["/logo.png"],
